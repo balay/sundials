@@ -96,6 +96,8 @@ typedef int (*CVEwtFn)(N_Vector y, N_Vector ewt, void* user_data);
 
 typedef int (*CVMonitorFn)(void* cvode_mem, void* user_data);
 
+typedef int (*CVResizeVecFn)(N_Vector y, N_Vector ytemplate, void* user_data);
+
 /* -------------------
  * Exported Functions
  * ------------------- */
@@ -106,6 +108,9 @@ SUNDIALS_EXPORT void* CVodeCreate(int lmm, SUNContext sunctx);
 SUNDIALS_EXPORT int CVodeInit(void* cvode_mem, CVRhsFn f, sunrealtype t0,
                               N_Vector y0);
 SUNDIALS_EXPORT int CVodeReInit(void* cvode_mem, sunrealtype t0, N_Vector y0);
+SUNDIALS_EXPORT int CVodeResizeHistory(void* cvode_mem, sunrealtype* times,
+                                       N_Vector* y_hist, N_Vector* f_hist,
+                                       int n_hist);
 
 /* Tolerance input functions */
 SUNDIALS_EXPORT int CVodeSStolerances(void* cvode_mem, sunrealtype reltol,
@@ -236,6 +241,14 @@ SUNDIALS_EXPORT void CVodeFree(void** cvode_mem);
 
 /* CVLS interface function that depends on CVRhsFn */
 SUNDIALS_EXPORT int CVodeSetJacTimesRhsFn(void* cvode_mem, CVRhsFn jtimesRhsFn);
+
+SUNDIALS_EXPORT int CVodeSetErrWeightMethod(void* cvode_mem, int method);
+
+SUNDIALS_EXPORT
+int CVodeSetSingleNonlinSolvIter(void* cvode_mem, sunbooleantype on_off);
+
+SUNDIALS_EXPORT
+int CVodeSetNextStep(void* cvode_mem, sunrealtype hnew);
 
 #ifdef __cplusplus
 }
