@@ -14,17 +14,17 @@
  * Build Nordsieck array from solution history
  * ---------------------------------------------------------------------------*/
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
+#include <sundials/sundials_types.h>
 
 #include "cvode/cvode.h"
 #include "cvode_impl.h"
-#include <sundials/sundials_types.h>
 
-#define ZERO    SUN_RCONST(0.0)     /* real 0.0     */
-#define ONE     SUN_RCONST(1.0)     /* real 1.0     */
+#define ZERO SUN_RCONST(0.0) /* real 0.0     */
+#define ONE  SUN_RCONST(1.0) /* real 1.0     */
 
 /* -----------------------------------------------------------------------------
  * Build Adams Nordsieck array from f(t,y) history
@@ -35,10 +35,7 @@ int BuildNordsieckArrayAdams(sunrealtype* t, N_Vector y, N_Vector* f,
                              N_Vector* zn)
 {
   /* Check for valid inputs */
-  if (!t || !y || !f || !wrk || order < 1 || !zn)
-  {
-    return CV_ILL_INPUT;
-  }
+  if (!t || !y || !f || !wrk || order < 1 || !zn) { return CV_ILL_INPUT; }
 
   for (int i = 0; i < order; i++)
   {
@@ -50,10 +47,7 @@ int BuildNordsieckArrayAdams(sunrealtype* t, N_Vector y, N_Vector* f,
   if (order > 1)
   {
     /* Compute Newton polynomial coefficients interpolating f history */
-    for (int i = 0; i < order; i++)
-    {
-      N_VScale(ONE, f[i], wrk[i]);
-    }
+    for (int i = 0; i < order; i++) { N_VScale(ONE, f[i], wrk[i]); }
 
     for (int i = 1; i < order; i++)
     {
@@ -67,10 +61,7 @@ int BuildNordsieckArrayAdams(sunrealtype* t, N_Vector y, N_Vector* f,
 
     /* Compute derivatives of Newton polynomial of f history */
     N_VScale(ONE, wrk[order - 1], zn[1]);
-    for (int i = 2; i <= order; i++)
-    {
-      N_VConst(ZERO, zn[i]);
-    }
+    for (int i = 2; i <= order; i++) { N_VConst(ZERO, zn[i]); }
 
     for (int i = order - 2; i >= 0; i--)
     {
@@ -90,7 +81,7 @@ int BuildNordsieckArrayAdams(sunrealtype* t, N_Vector y, N_Vector* f,
   sunrealtype scale = ONE;
   for (int i = 1; i <= order; i++)
   {
-    scale *= hscale / ((sunrealtype) i);
+    scale *= hscale / ((sunrealtype)i);
     N_VScale(scale, zn[i], zn[i]);
   }
 
@@ -101,15 +92,11 @@ int BuildNordsieckArrayAdams(sunrealtype* t, N_Vector y, N_Vector* f,
  * Function to build BDF Nordsieck array
  * ---------------------------------------------------------------------------*/
 
-int BuildNordsieckArrayBDF(sunrealtype* t, N_Vector* y, N_Vector f,
-                           N_Vector* wrk, int order, sunrealtype hscale,
-                           N_Vector* zn)
+int BuildNordsieckArrayBDF(sunrealtype* t, N_Vector* y, N_Vector f, N_Vector* wrk,
+                           int order, sunrealtype hscale, N_Vector* zn)
 {
   /* Check for valid inputs */
-  if (!t || !y || !f || !wrk || order < 1 || !zn)
-  {
-    return CV_ILL_INPUT;
-  }
+  if (!t || !y || !f || !wrk || order < 1 || !zn) { return CV_ILL_INPUT; }
 
   for (int i = 0; i < order; i++)
   {
@@ -127,17 +114,11 @@ int BuildNordsieckArrayBDF(sunrealtype* t, N_Vector* y, N_Vector f,
     sunrealtype t_ext[6];
 
     t_ext[0] = t[0];
-    for (int i = 1; i <= order; i++)
-    {
-      t_ext[i] = t[i - 1];
-    }
+    for (int i = 1; i <= order; i++) { t_ext[i] = t[i - 1]; }
 
     /* Compute Hermite polynomial coefficients interpolating y history and f */
     N_VScale(ONE, y[0], wrk[0]);
-    for (int i = 1; i <= order; i++)
-    {
-      N_VScale(ONE, y[i - 1], wrk[i]);
-    }
+    for (int i = 1; i <= order; i++) { N_VScale(ONE, y[i - 1], wrk[i]); }
 
     for (int i = 1; i <= order; i++)
     {
@@ -159,10 +140,7 @@ int BuildNordsieckArrayBDF(sunrealtype* t, N_Vector* y, N_Vector f,
 
     /* Compute derivatives of Hermite polynomial */
     N_VScale(ONE, wrk[order], zn[0]);
-    for (int i = 1; i <= order; i++)
-    {
-      N_VConst(ZERO, zn[i]);
-    }
+    for (int i = 1; i <= order; i++) { N_VConst(ZERO, zn[i]); }
 
     for (int i = order - 1; i >= 0; i--)
     {
@@ -182,7 +160,7 @@ int BuildNordsieckArrayBDF(sunrealtype* t, N_Vector* y, N_Vector f,
   sunrealtype scale = ONE;
   for (int i = 1; i <= order; i++)
   {
-    scale *= hscale / ((sunrealtype) i);
+    scale *= hscale / ((sunrealtype)i);
     N_VScale(scale, zn[i], zn[i]);
   }
 
@@ -212,11 +190,11 @@ int PredictY(int order, N_Vector* zn, N_Vector ypred)
  * f_hist = [ f_{n}, f_{n - 1}, ..., f_{n - n_hist - 1} ]
  * ---------------------------------------------------------------------------*/
 
-int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
+int CVodeResizeHistory(void* cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
                        N_Vector* f_hist, int n_hist)
 {
   CVodeMem cv_mem = NULL;
-  int retval = 0;
+  int retval      = 0;
   int j, ithist, ord;
   N_Vector tmpl;
   int maxord;
@@ -227,7 +205,7 @@ int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
                    MSGCV_NO_MEM);
     return CV_MEM_NULL;
   }
-  cv_mem = (CVodeMem) cvode_mem;
+  cv_mem = (CVodeMem)cvode_mem;
 
   if (!t_hist)
   {
@@ -264,7 +242,8 @@ int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
   fprintf(cv_mem->cv_sunctx->logger->debug_fp, "n_hist         = %d\n", n_hist);
   for (ithist = 0; ithist < n_hist; ithist++)
   {
-    fprintf(cv_mem->cv_sunctx->logger->debug_fp, "t_hist[%d]      = %g\n", ithist, t_hist[ithist]);
+    fprintf(cv_mem->cv_sunctx->logger->debug_fp, "t_hist[%d]      = %g\n",
+            ithist, t_hist[ithist]);
   }
   for (ithist = 0; ithist < n_hist; ithist++) /* n_hist is for BDF */
   {
@@ -277,14 +256,22 @@ int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
     N_VPrintFile(f_hist[ithist], cv_mem->cv_sunctx->logger->debug_fp);
   }
   fprintf(cv_mem->cv_sunctx->logger->debug_fp, "CVODE values\n");
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "tn             = %g\n", cv_mem->cv_tn);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "current h      = %g\n", cv_mem->cv_h);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next h         = %g\n", cv_mem->cv_hprime);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next h (?)     = %g\n", cv_mem->cv_next_h);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "h scale        = %g\n", cv_mem->cv_hscale);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "current order  = %d\n", cv_mem->cv_q);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next order     = %d\n", cv_mem->cv_qprime);
-  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next order (?) = %d\n", cv_mem->cv_next_q);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "tn             = %g\n",
+          cv_mem->cv_tn);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "current h      = %g\n",
+          cv_mem->cv_h);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next h         = %g\n",
+          cv_mem->cv_hprime);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next h (?)     = %g\n",
+          cv_mem->cv_next_h);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "h scale        = %g\n",
+          cv_mem->cv_hscale);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "current order  = %d\n",
+          cv_mem->cv_q);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next order     = %d\n",
+          cv_mem->cv_qprime);
+  fprintf(cv_mem->cv_sunctx->logger->debug_fp, "next order (?) = %d\n",
+          cv_mem->cv_next_q);
   for (ord = 0; ord <= cv_mem->cv_qmax_alloc; ord++)
   {
     fprintf(cv_mem->cv_sunctx->logger->debug_fp, "zn[%d]\n", ord);
@@ -295,7 +282,7 @@ int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
   /* Make sure number of inputs is sufficient for the current (next) order */
   /* Make sure times[0] == tn */
 
-  tmpl = y_hist[0];
+  tmpl   = y_hist[0];
   maxord = cv_mem->cv_qmax_alloc;
 
   /* -------------- *
@@ -425,7 +412,7 @@ int CVodeResizeHistory(void *cvode_mem, sunrealtype* t_hist, N_Vector* y_hist,
   {
     N_VDestroy(cv_mem->cv_constraints);
     cv_mem->cv_constraintsMallocDone = SUNFALSE;
-    cv_mem->cv_constraintsSet = SUNFALSE;
+    cv_mem->cv_constraintsSet        = SUNFALSE;
   }
 
   cv_mem->first_step_after_resize = SUNTRUE;
